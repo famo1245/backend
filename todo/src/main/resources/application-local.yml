@@ -7,6 +7,7 @@ spring:
       - database-local.properties
       - front.properties
       - message.properties
+      - mail.properties
   datasource:
     url: ${DB.URL}
     username: ${DB.USERNAME}
@@ -20,6 +21,19 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+  mail:
+    host: ${MAIL.HOST}
+    port: ${MAIL.PORT}
+    properties:
+      mail.smtp:
+        auth: true
+        starttls:
+          enable: true
+          required: true
+          timeout: ${MAIL.TIME_OUT}
+    username: ${MAIL.USER_NAME}
+    password: ${MAIL.PASSWORD}
+
 logging:
   level:
     com.ssafy.sandbox: ${LOGGING_LEVEL:DEBUG}
