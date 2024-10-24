@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Slf4j
@@ -36,6 +37,15 @@ public class EmailServiceImpl implements EmailService {
 
         EmailCode emailCode = new EmailCode(email, code);
         emailCodeRepository.save(emailCode);
+    }
+
+    @Override
+    public boolean verify(String email, String code) throws NoSuchElementException {
+        EmailCode emailCode = emailCodeRepository.findEmailCodeByEmail(email)
+                .orElseThrow(NoSuchElementException::new);
+
+        log.debug(emailCode.getEmail(), emailCode.getCode());
+        return emailCode.getCode().equals(code);
     }
 
     private void send(String email, String code) throws MessagingException {

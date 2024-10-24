@@ -1,15 +1,16 @@
 package com.ssafy.sandbox.email.controller;
 
+import com.ssafy.sandbox.email.dto.EmailRequestDto;
 import com.ssafy.sandbox.email.dto.SendEmailDto;
+import com.ssafy.sandbox.email.dto.VerifyEmailDto;
 import com.ssafy.sandbox.email.service.EmailService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.NoSuchElementException;
 
 @Slf4j
 @RestController
@@ -20,21 +21,34 @@ public class EmailController {
     private final EmailService emailService;
 
     @PostMapping()
-    public ResponseEntity<?> sendEmail(@RequestParam("email") String email) {
-        log.debug("request email: {}", email);
+    public ResponseEntity<?> sendEmail(@RequestBody EmailRequestDto requestDto) {
+        log.debug("request email: {}", requestDto.getEmail());
 
         try {
-            emailService.sendEmail(email);
+            emailService.sendEmail(requestDto.getEmail());
             SendEmailDto dto = SendEmailDto.builder()
                     .isOk(true)
                     .build();
             return ResponseEntity.ok().body(dto);
         } catch (MessagingException e) {
             log.error("{}", e.getMessage());
-            SendEmailDto dto = SendEmailDto.builder()
-                    .isOk(false)
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/authentication")
+    public ResponseEntity<?> verifyEmail(@RequestBody EmailRequestDto requestDto) {
+        log.debug("email: {}, code: {}", requestDto.getEmail(), requestDto.getAuthentication());
+
+        try {
+            boolean result = emailService.verify(requestDto.getEmail(), requestDto.getAuthentication());
+            VerifyEmailDto dto = VerifyEmailDto.builder()
+                    .isSuccess(result)
                     .build();
             return ResponseEntity.ok().body(dto);
+        } catch (NoSuchElementException e) {
+            log.error("{}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
         }
     }
 }
